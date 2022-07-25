@@ -9,31 +9,32 @@ FROM ubuntu:latest
 #   * Install neovim and neovim configs
 #   * Install dotfiles
 
-# Install generic linux utilities and dev tools
+# Install generic linux utilities
 RUN apt-get update && \
     apt-get install -y \ 
         git \
-        ripgrep \
         tmux \
         jq \
-        bat \
-        exa \
-        fd \
-        procs \
-        dust \
         curl \
-        entr \
         ssh
+
+# Install docker
+RUN curl -sSL https://get.docker.com/ | sh
 
 # Install neovim from source
 RUN apt-get install -y ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen
 
 RUN git clone https://github.com/neovim/neovim.git && cd neovim && make CMAKE_BUILD_TYPE=Release && make install
 
+RUN apt-get install -y sudo
+
 # create user and home directory
-RUN useradd -ms /bin/bash mydevenv
-USER mydevenv
-WORKDIR /home/mydevenv
+RUN adduser --disabled-password --gecos '' devuser
+RUN adduser devuser sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER devuser
+WORKDIR /home/devuser
 
 # Install dotfiles
 # RUN cd ~/ && git clone https://github.com/nhaney/dotfiles.git
