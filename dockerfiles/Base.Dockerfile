@@ -26,19 +26,47 @@ RUN apt-get install -y ninja-build gettext libtool libtool-bin autoconf automake
 
 RUN git clone https://github.com/neovim/neovim.git && cd neovim && make CMAKE_BUILD_TYPE=Release && make install
 
-RUN apt-get install -y sudo
-
 # create user and home directory
+RUN apt-get install -y sudo
 RUN adduser --disabled-password --gecos '' devuser
 RUN adduser devuser sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
+# install neovim dependencies
+## setup locale
+RUN apt-get install -y locales
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8 
+
+## install python3, pip
+RUN apt-get install -y python3 python3-pip
+
+## install xclip for clipboard
+RUN apt-get install -y xsel
+
+## ripgrep + fd for better searching
+RUN apt-get install -y ripgrep
+RUN apt-get install -y fd-find
+
 USER devuser
 WORKDIR /home/devuser
 
-# Install dotfiles
-# RUN cd ~/ && git clone https://github.com/nhaney/dotfiles.git
+SHELL ["/bin/bash", "-c"]
+
+# install python neovim provider
+RUN python3 -m pip install pynvim
+
+## install node + neovim node provider
+RUN curl -fsSL https://fnm.vercel.app/install | bash
+RUN source /home/devuser/.bashrc
+RUN /home/devuser/.fnm/fnm install v18.7.0
+RUN npm i -g neovim
 
 # Add aliases
 RUN echo "alias tmux='tmux -u'" >> .bashrc
 RUN echo "alias vim='nvim'" >> .bashrc
+
+# Configure Neovim
+
