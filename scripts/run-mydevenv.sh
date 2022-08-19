@@ -12,6 +12,7 @@
 docker run -it \
     --rm \
     --group-add $(getent group docker | cut -d : -f3) \
+    --mount source=mydevenv-vol,target=/home/devuser \
     --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
     --mount type=bind,source=/home/$(whoami)/.ssh,target=/home/devuser/.ssh \
     --mount type=bind,source=/home/$(whoami)/.gitconfig,target=/home/devuser/.gitconfig \
